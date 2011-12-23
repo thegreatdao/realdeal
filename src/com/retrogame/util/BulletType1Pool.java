@@ -28,12 +28,27 @@ public class BulletType1Pool extends GenericPool<BaseBulletSprite> {
 
 			@Override
 			protected void onManagedUpdate(float pSecondsElapsed) {
+				final BaseBulletSprite pItem = this;
+				final Engine engine2 = BulletType1Pool.this.engine;
 				if(getY() < -100) {
-					recyclePoolItem(this);
+					engine2.runOnUpdateThread(new Runnable() {
+						
+						@Override
+						public void run() {
+							pItem.detachSelf();
+							recyclePoolItem(pItem);
+						}
+					});
 				} else {
 					for(RectangularShape target : targets) {
-						if(target.collidesWith(this)) {
-							recyclePoolItem(this);
+						if(target.collidesWith(pItem)) {
+							engine2.runOnUpdateThread(new Runnable() {
+								@Override
+								public void run() {
+									pItem.detachSelf();
+									recyclePoolItem(pItem);
+								}
+							});
 						}
 					}
 				}

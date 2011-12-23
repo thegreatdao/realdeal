@@ -116,10 +116,10 @@ public class MainActivity extends BaseGameActivity implements
 		AnimatedSprite enemy2 = new AnimatedSprite(100, 100, enemyTextureRegion.deepCopy());
 		AnimatedSprite enemy3 = new AnimatedSprite(400, 100, enemyTextureRegion.deepCopy());
 		AnimatedSprite enemy4 = new AnimatedSprite(300, 100, enemyTextureRegion.deepCopy());
-		targets.add(enemy);
+		/*targets.add(enemy);
 		targets.add(enemy2);
 		targets.add(enemy3);
-		targets.add(enemy4);
+		targets.add(enemy4);*/
 		enemy.animate(500);
 		enemy2.animate(600);
 		enemy3.animate(700);
