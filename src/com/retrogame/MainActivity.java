@@ -1,5 +1,8 @@
 package com.retrogame;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.engine.handler.IUpdateHandler;
@@ -11,6 +14,7 @@ import org.anddev.andengine.entity.primitive.Line;
 import org.anddev.andengine.entity.scene.Scene;
 import org.anddev.andengine.entity.scene.Scene.IOnSceneTouchListener;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
+import org.anddev.andengine.entity.shape.RectangularShape;
 import org.anddev.andengine.entity.sprite.AnimatedSprite;
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.input.touch.TouchEvent;
@@ -27,7 +31,7 @@ import com.retrogame.util.BulletType1Pool;
 public class MainActivity extends BaseGameActivity implements
 		IOnSceneTouchListener {
 
-	private static final int ACTIVE_BULLETS_COUNT = 40;
+	private static final int ACTIVE_BULLETS_COUNT = 80;
 	private static final int CAMERA_WIDTH = 480;
 	private static final int CAMERA_HEIGHT = 720;
 
@@ -53,6 +57,8 @@ public class MainActivity extends BaseGameActivity implements
 	private float planePositionCircleSpriteHalfHeight;
 	private TextureRegion bulletType1TextureRegion;
 	private BulletType1Pool bulletType1Pool;
+	private TiledTextureRegion enemyTextureRegion;
+	private Set<RectangularShape> targets = new HashSet<RectangularShape>();
 
 	@Override
 	public Engine onLoadEngine() {
@@ -67,7 +73,7 @@ public class MainActivity extends BaseGameActivity implements
 		bitmapTextureAtlas = new BitmapTextureAtlas(512, 128,
 				TextureOptions.BILINEAR);
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
-		this.planeTextureRegion = BitmapTextureAtlasTextureRegionFactory
+		planeTextureRegion = BitmapTextureAtlasTextureRegionFactory
 				.createTiledFromAsset(this.bitmapTextureAtlas, this,
 						"plane2.png", 0, 0, 3, 1);
 		circleTextureRegion = BitmapTextureAtlasTextureRegionFactory
@@ -76,6 +82,9 @@ public class MainActivity extends BaseGameActivity implements
 		bulletType1TextureRegion = BitmapTextureAtlasTextureRegionFactory
 				.createFromAsset(this.bitmapTextureAtlas, this, "bullet1.png",
 						275, 20);
+		enemyTextureRegion = BitmapTextureAtlasTextureRegionFactory
+				.createTiledFromAsset(this.bitmapTextureAtlas, this, "enemy.png",
+						287, 0, 2, 1);
 		this.mEngine.getTextureManager().loadTexture(this.bitmapTextureAtlas);
 	}
 
@@ -83,7 +92,7 @@ public class MainActivity extends BaseGameActivity implements
 	public Scene onLoadScene() {
 		final Scene scene = new Scene();
 		scene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8784f));
-		bulletType1Pool = new BulletType1Pool(bulletType1TextureRegion, mEngine);
+		bulletType1Pool = new BulletType1Pool(bulletType1TextureRegion, mEngine, targets);
 		bulletType1Pool.batchAllocatePoolItems(ACTIVE_BULLETS_COUNT);
 		addBorders(scene);
 		plane = new AnimatedSprite(CAMERA_WIDTH / 2 - 30,
@@ -103,12 +112,28 @@ public class MainActivity extends BaseGameActivity implements
 		physicsHandler = new PhysicsHandler(plane);
 		plane.registerUpdateHandler(physicsHandler);
 		plane.attachChild(planeCenterCircleSprite);
+		AnimatedSprite enemy = new AnimatedSprite(CAMERA_WIDTH / 2, 100, enemyTextureRegion);
+		AnimatedSprite enemy2 = new AnimatedSprite(100, 100, enemyTextureRegion.deepCopy());
+		AnimatedSprite enemy3 = new AnimatedSprite(400, 100, enemyTextureRegion.deepCopy());
+		AnimatedSprite enemy4 = new AnimatedSprite(300, 100, enemyTextureRegion.deepCopy());
+		targets.add(enemy);
+		targets.add(enemy2);
+		targets.add(enemy3);
+		targets.add(enemy4);
+		enemy.animate(500);
+		enemy2.animate(600);
+		enemy3.animate(700);
+		enemy4.animate(800);
+		scene.attachChild(enemy);
+		scene.attachChild(enemy2);
+		scene.attachChild(enemy3);
+		scene.attachChild(enemy4);
 		scene.attachChild(plane);
 		scene.attachChild(planePositionCircleSprite);
-		scene.setOnSceneTouchListener(this);
+		scene.setOnSceneTouchListener(this);		
 		scene.registerUpdateHandler(new IUpdateHandler() {
 			private long startShootingTimeMillis = System.currentTimeMillis();
-			private long accumulatedTimeForShootingMillis = 100;
+			private long accumulatedTimeForShootingMillis = 0;
 
 			@Override
 			public void reset() {
