@@ -1,21 +1,24 @@
 package com.retrogame.util;
 
+import org.anddev.andengine.engine.Engine;
+import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.util.pool.GenericPool;
 
-import com.retrogame.sprite.bullet.BulletType1;
 
-public class BulletType1Pool extends GenericPool<BulletType1> {
+public class BulletType1Pool extends GenericPool<Sprite> {
 
 	private TextureRegion textureRegion;
+	private Engine engine;
 
-	public BulletType1Pool(TextureRegion textureRegion) {
+	public BulletType1Pool(TextureRegion textureRegion, Engine engine) {
 		this.textureRegion = textureRegion;
+		this.engine = engine;
 	}
 	
 	@Override
-	protected BulletType1 onAllocatePoolItem() {
-		return new BulletType1(Integer.MAX_VALUE, Integer.MAX_VALUE, textureRegion.deepCopy(), false) {
+	protected Sprite onAllocatePoolItem() {
+		return new Sprite(Integer.MAX_VALUE, Integer.MAX_VALUE, textureRegion.deepCopy()) {
 
 			@Override
 			protected void onManagedUpdate(float pSecondsElapsed) {
@@ -30,10 +33,18 @@ public class BulletType1Pool extends GenericPool<BulletType1> {
 	}
 
 	@Override
-	protected void onHandleRecycleItem(BulletType1 pItem) {
+	protected void onHandleRecycleItem(final Sprite pItem) {
 		pItem.clearEntityModifiers();
 		pItem.clearUpdateHandlers();
 		pItem.reset();
+		engine.runOnUpdateThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				pItem.detachSelf();
+				
+			}
+		});
 		super.onHandleRecycleItem(pItem);
 	}
 	

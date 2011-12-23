@@ -22,7 +22,6 @@ import org.anddev.andengine.opengl.texture.region.TiledTextureRegion;
 import org.anddev.andengine.ui.activity.BaseGameActivity;
 import org.anddev.andengine.util.MathUtils;
 
-import com.retrogame.sprite.bullet.BulletType1;
 import com.retrogame.util.BulletType1Pool;
 
 public class MainActivity extends BaseGameActivity implements
@@ -84,7 +83,7 @@ public class MainActivity extends BaseGameActivity implements
 	public Scene onLoadScene() {
 		final Scene scene = new Scene();
 		scene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8784f));
-		bulletType1Pool = new BulletType1Pool(bulletType1TextureRegion);
+		bulletType1Pool = new BulletType1Pool(bulletType1TextureRegion, mEngine);
 		bulletType1Pool.batchAllocatePoolItems(ACTIVE_BULLETS_COUNT);
 		addBorders(scene);
 		plane = new AnimatedSprite(CAMERA_WIDTH / 2 - 30,
@@ -109,7 +108,7 @@ public class MainActivity extends BaseGameActivity implements
 		scene.setOnSceneTouchListener(this);
 		scene.registerUpdateHandler(new IUpdateHandler() {
 			private long startShootingTimeMillis = System.currentTimeMillis();
-			private long accumulatedTimeForShootingMillis = 500;
+			private long accumulatedTimeForShootingMillis = 100;
 
 			@Override
 			public void reset() {
@@ -152,29 +151,23 @@ public class MainActivity extends BaseGameActivity implements
 			}
 
 			private void addLeftBullet(final Scene scene) {
-				BulletType1 bullet = bulletType1Pool.obtainPoolItem();
+				Sprite bullet = bulletType1Pool.obtainPoolItem();
 				bullet.setPosition(plane.getX() + planeHalfWidth - 14,
 						plane.getY() - 3);
 				PhysicsHandler physicsHandler = new PhysicsHandler(bullet);
 				bullet.registerUpdateHandler(physicsHandler);
 				physicsHandler.setVelocity(0, -1000);
-				if (!bullet.isAttachedToScene()) {
 					scene.attachChild(bullet);
-					bullet.setAttachedToScene(true);
-				}
 			}
 			
 			private void addRightBullet(final Scene scene) {
-				BulletType1 bullet = bulletType1Pool.obtainPoolItem();
+				Sprite bullet = bulletType1Pool.obtainPoolItem();
 				bullet.setPosition(plane.getX() + planeHalfWidth + 6,
 						plane.getY() - 3);
 				PhysicsHandler physicsHandler = new PhysicsHandler(bullet);
 				bullet.registerUpdateHandler(physicsHandler);
 				physicsHandler.setVelocity(0, -1000);
-				if (!bullet.isAttachedToScene()) {
 					scene.attachChild(bullet);
-					bullet.setAttachedToScene(true);
-				}
 			}
 		});
 		return scene;
