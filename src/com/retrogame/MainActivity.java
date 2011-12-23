@@ -141,7 +141,7 @@ public class MainActivity extends BaseGameActivity implements
 						plane.setPosition(x, CAMERA_HEIGHT - plane.getHeight());
 					}
 				}
-				/*final long currentTimeMillis = System.currentTimeMillis();
+				final long currentTimeMillis = System.currentTimeMillis();
 				if (currentTimeMillis - startShootingTimeMillis >= accumulatedTimeForShootingMillis) {
 					shoot(scene);
 					startShootingTimeMillis = currentTimeMillis;
@@ -159,7 +159,7 @@ public class MainActivity extends BaseGameActivity implements
 							startRecyclingTimeMillis = currentTimeMillis;
 						}
 					});
-				}*/
+				}
 			}
 
 			private void shoot(final Scene scene) {
