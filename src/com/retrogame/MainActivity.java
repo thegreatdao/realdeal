@@ -1,8 +1,5 @@
 package com.retrogame;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.camera.Camera;
 import org.anddev.andengine.engine.handler.IUpdateHandler;
@@ -31,6 +28,7 @@ import com.retrogame.util.BulletType1Pool;
 public class MainActivity extends BaseGameActivity implements
 		IOnSceneTouchListener {
 
+	private static final int ACTIVE_BULLETS_COUNT = 40;
 	private static final int CAMERA_WIDTH = 480;
 	private static final int CAMERA_HEIGHT = 720;
 
@@ -56,7 +54,6 @@ public class MainActivity extends BaseGameActivity implements
 	private float planePositionCircleSpriteHalfHeight;
 	private TextureRegion bulletType1TextureRegion;
 	private BulletType1Pool bulletType1Pool;
-	private Set<BulletType1> bulletType1s = new HashSet<BulletType1>();
 
 	@Override
 	public Engine onLoadEngine() {
@@ -88,6 +85,7 @@ public class MainActivity extends BaseGameActivity implements
 		final Scene scene = new Scene();
 		scene.setBackground(new ColorBackground(0.09804f, 0.6274f, 0.8784f));
 		bulletType1Pool = new BulletType1Pool(bulletType1TextureRegion);
+		bulletType1Pool.batchAllocatePoolItems(ACTIVE_BULLETS_COUNT);
 		addBorders(scene);
 		plane = new AnimatedSprite(CAMERA_WIDTH / 2 - 30,
 				CAMERA_HEIGHT / 2 - 29, this.planeTextureRegion);
@@ -111,9 +109,7 @@ public class MainActivity extends BaseGameActivity implements
 		scene.setOnSceneTouchListener(this);
 		scene.registerUpdateHandler(new IUpdateHandler() {
 			private long startShootingTimeMillis = System.currentTimeMillis();
-			private long startRecyclingTimeMillis = startShootingTimeMillis;
-			private long accumulatedTimeForShootingMillis = 100;
-			private long accumulatedTimeForRecyclingMillis = 600;
+			private long accumulatedTimeForShootingMillis = 500;
 
 			@Override
 			public void reset() {
@@ -146,25 +142,19 @@ public class MainActivity extends BaseGameActivity implements
 					shoot(scene);
 					startShootingTimeMillis = currentTimeMillis;
 				}
-				if(currentTimeMillis - startRecyclingTimeMillis >= accumulatedTimeForRecyclingMillis) {
-					runOnUpdateThread(new Runnable() {
-						public void run() {
-							for (BulletType1 bulletType1 : bulletType1s) {
-								if (bulletType1.getY() < -bulletType1.getHeight()) {
-									bulletType1Pool.recyclePoolItem(bulletType1);
-									scene.detachChild(bulletType1);
-									bulletType1.clearUpdateHandlers();
-								}
-							}
-							startRecyclingTimeMillis = currentTimeMillis;
-						}
-					});
-				}
 			}
 
 			private void shoot(final Scene scene) {
+				if (bulletType1Pool.getUnrecycledCount() < ACTIVE_BULLETS_COUNT) {
+					addLeftBullet(scene);
+					addRightBullet(scene);
+				}
+			}
+
+			private void addLeftBullet(final Scene scene) {
 				BulletType1 bullet = bulletType1Pool.obtainPoolItem();
-				bullet.setPosition(plane.getX() + planeHalfWidth, plane.getY());
+				bullet.setPosition(plane.getX() + planeHalfWidth - 14,
+						plane.getY() - 3);
 				PhysicsHandler physicsHandler = new PhysicsHandler(bullet);
 				bullet.registerUpdateHandler(physicsHandler);
 				physicsHandler.setVelocity(0, -1000);
@@ -172,7 +162,19 @@ public class MainActivity extends BaseGameActivity implements
 					scene.attachChild(bullet);
 					bullet.setAttachedToScene(true);
 				}
-				bulletType1s.add(bullet);
+			}
+			
+			private void addRightBullet(final Scene scene) {
+				BulletType1 bullet = bulletType1Pool.obtainPoolItem();
+				bullet.setPosition(plane.getX() + planeHalfWidth + 6,
+						plane.getY() - 3);
+				PhysicsHandler physicsHandler = new PhysicsHandler(bullet);
+				bullet.registerUpdateHandler(physicsHandler);
+				physicsHandler.setVelocity(0, -1000);
+				if (!bullet.isAttachedToScene()) {
+					scene.attachChild(bullet);
+					bullet.setAttachedToScene(true);
+				}
 			}
 		});
 		return scene;

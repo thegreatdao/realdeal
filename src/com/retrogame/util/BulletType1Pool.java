@@ -15,7 +15,17 @@ public class BulletType1Pool extends GenericPool<BulletType1> {
 	
 	@Override
 	protected BulletType1 onAllocatePoolItem() {
-		return new BulletType1(Integer.MAX_VALUE, Integer.MAX_VALUE, textureRegion.deepCopy(), false);
+		return new BulletType1(Integer.MAX_VALUE, Integer.MAX_VALUE, textureRegion.deepCopy(), false) {
+
+			@Override
+			protected void onManagedUpdate(float pSecondsElapsed) {
+				if(getY() < -100) {
+					recyclePoolItem(this);
+				}
+				super.onManagedUpdate(pSecondsElapsed);
+			}
+			
+		};
 
 	}
 
@@ -23,6 +33,7 @@ public class BulletType1Pool extends GenericPool<BulletType1> {
 	protected void onHandleRecycleItem(BulletType1 pItem) {
 		pItem.clearEntityModifiers();
 		pItem.clearUpdateHandlers();
+		pItem.reset();
 		super.onHandleRecycleItem(pItem);
 	}
 	
